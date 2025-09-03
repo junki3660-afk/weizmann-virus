@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>와이즈만 전염병 게임</title>
+<style>
+body { font-family: Arial, sans-serif; background: #f0f0f0; padding: 20px; }
+h1 { text-align: center; }
+.section { background: #fff; padding: 15px; margin-bottom: 20px; border-radius: 8px; }
+input, textarea { width: 100%; margin: 5px 0 10px 0; padding: 5px; }
+button { display: block; margin: auto; padding: 10px 20px; font-size: 16px; }
+#result { white-space: pre-wrap; background: #e0e0e0; padding: 15px; border-radius: 8px; margin-top: 20px; }
+</style>
+</head>
+<body>
+
+<h1>와이즈만 전염병 게임</h1>
+
+<div class="section" style="background:#dff0d8;">
+<h2>게임 룰 안내</h2>
+<p>
+두 팀이 서로의 바이러스를 퍼뜨리고 방어합니다.<br>
+1️⃣ 바이러스 특성 포인트(감염력, 잠복기, 치명률, 전파경로) 총 20포인트 배분<br>
+2️⃣ 방어 전략 포인트(격리 위치, 병원치료, 대응속도, 감시, 백신) 총 20포인트 배분<br>
+3️⃣ 게임 시작 버튼 클릭 시 예상 감염자 수, 전략 분석, 승패, 스토리 자동 출력<br>
+4️⃣ 총 인구수: 1,220,000명
+</p>
+</div>
+
+<div class="section">
+<h2>A팀 정보</h2>
+<input id="aTeamName" placeholder="A팀 이름">
+<input id="aTeamMembers" placeholder="팀원 이름/직업 (예: 지민(과학자), 태윤(연구원))">
+<textarea id="aVirus" placeholder="예: RNA, 전파력6, 잠복기6, 치명률4, 전파경로4">RNA, 전파력6, 잠복기6, 치명률4, 전파경로4</textarea>
+<h3>포인트 배분 (20포인트)</h3>
+<input id="aInfec" placeholder="감염력(0~10)" value="6">
+<input id="aLatency" placeholder="잠복기(0~10)" value="6">
+<input id="aFatal" placeholder="치명률(0~10)" value="4">
+<input id="aSpread" placeholder="전파경로(0~10)" value="4">
+</div>
+
+<div class="section">
+<h2>B팀 정보</h2>
+<input id="bTeamName" placeholder="B팀 이름">
+<input id="bTeamMembers" placeholder="팀원 이름/직업 (예: 기혜(의사), 수현(간호사))">
+<textarea id="bVirus" placeholder="예: DNA, 전파력4, 잠복기4, 치명률8, 전파경로4">DNA, 전파력4, 잠복기4, 치명률8, 전파경로4</textarea>
+<h3>포인트 배분 (20포인트)</h3>
+<input id="bInfec" placeholder="감염력(0~10)" value="4">
+<input id="bLatency" placeholder="잠복기(0~10)" value="4">
+<input id="bFatal" placeholder="치명률(0~10)" value="8">
+<input id="bSpread" placeholder="전파경로(0~10)" value="4">
+</div>
+
+<div class="section">
+<h2>A팀 대응 전략</h2>
+<textarea id="aDefense">백신 접종, 병원 치료 강화, 의료진 동원</textarea>
+<h3>포인트 배분 (20포인트)</h3>
+<input id="aIso" placeholder="격리 위치(0~10)" value="6">
+<input id="aHosp" placeholder="병원치료(0~10)" value="5">
+<input id="aSpeed" placeholder="대응속도(0~10)" value="5">
+<input id="aSurv" placeholder="감시(0~10)" value="2">
+<input id="aVaccine" placeholder="백신(0~10)" value="2">
+</div>
+
+<div class="section">
+<h2>B팀 대응 전략</h2>
+<textarea id="bDefense">격리, 모니터링, 위치 최적화</textarea>
+<h3>포인트 배분 (20포인트)</h3>
+<input id="bIso" placeholder="격리 위치(0~10)" value="6">
+<input id="bHosp" placeholder="병원치료(0~10)" value="5">
+<input id="bSpeed" placeholder="대응속도(0~10)" value="5">
+<input id="bSurv" placeholder="감시(0~10)" value="2">
+<input id="bVaccine" placeholder="백신(0~10)" value="2">
+</div>
+
+<button onclick="runGame()">게임 시작</button>
+<div id="result"></div>
+
+<script>
+function calculateVirusPower(type, infec, latency, fatal, spread){
+    type = type.toUpperCase();
+    if(type.includes("RNA")){
+        return infec*0.5 + latency*0.3 + fatal*0.1 + spread*0.1;
+    } else {
+        return infec*0.2 + latency*0.2 + fatal*0.4 + spread*0.2;
+    }
+}
+
+function calculateDefensePower(type, iso, hosp, speed, surv, vaccine){
+    type = type.toUpperCase();
+    if(type.includes("RNA")){
+        return iso*0.35 + speed*0.25 + surv*0.2 + hosp*0.1 + vaccine*0.1;
+    } else {
+        return hosp*0.3 + vaccine*0.3 + iso*0.15 + speed*0.15 + surv*0.1;
+    }
+}
+
+function runGame() {
+const totalPop = 1220000;
+
+const aVirusInput = document.getElementById('aVirus').value.split(",");
+const aVirusType = aVirusInput[0].trim();
+const aInfec = parseInt(document.getElementById('aInfec').value)||0;
+const aLatency = parseInt(document.getElementById('aLatency').value)||0;
+const aFatal = parseInt(document.getElementById('aFatal').value)||0;
+const aSpread = parseInt(document.getElementById('aSpread').value)||0;
+
+const bVirusInput = document.getElementById('bVirus').value.split(",");
+const bVirusType = bVirusInput[0].trim();
+const bInfec = parseInt(document.getElementById('bInfec').value)||0;
+const bLatency = parseInt(document.getElementById('bLatency').value)||0;
+const bFatal = parseInt(document.getElementById('bFatal').value)||0;
+const bSpread = parseInt(document.getElementById('bSpread').value)||0;
+
+const aVirusPower = calculateVirusPower(aVirusType,aInfec,aLatency,aFatal,aSpread);
+const bVirusPower = calculateVirusPower(bVirusType,bInfec,bLatency,bFatal,bSpread);
+
+const aIso = parseInt(document.getElementById('aIso').value)||0;
+const aHosp = parseInt(document.getElementById('aHosp').value)||0;
+const aSpeed = parseInt(document.getElementById('aSpeed').value)||0;
+const aSurv = parseInt(document.getElementById('aSurv').value)||0;
+const aVaccine = parseInt(document.getElementById('aVaccine').value)||0;
+
+const bIso = parseInt(document.getElementById('bIso').value)||0;
+const bHosp = parseInt(document.getElementById('bHosp').value)||0;
+const bSpeed = parseInt(document.getElementById('bSpeed').value)||0;
+const bSurv = parseInt(document.getElementById('bSurv').value)||0;
+const bVaccine = parseInt(document.getElementById('bVaccine').value)||0;
+
+const aDefensePower = calculateDefensePower(aVirusType,bIso,bHosp,bSpeed,bSurv,bVaccine);
+const bDefensePower = calculateDefensePower(bVirusType,aIso,aHosp,aSpeed,aSurv,aVaccine);
+
+// 예상 감염자 계산 (랜덤 제거)
+const aInfected = Math.floor(totalPop * (aVirusPower / (aVirusPower + aDefensePower)));
+const bInfected = Math.floor(totalPop * (bVirusPower / (bVirusPower + bDefensePower)));
+
+const aTeamName = document.getElementById('aTeamName').value||"A팀";
+const bTeamName = document.getElementById('bTeamName').value||"B팀";
+const aMembers = document.getElementById('aTeamMembers').value||"지민(과학자), 태윤(연구원)";
+const bMembers = document.getElementById('bTeamMembers').value||"기혜(의사), 수현(간호사)";
+const aDefense = document.getElementById('aDefense').value;
+const bDefense = document.getElementById('bDefense').value;
+
+const winner = aInfected < bInfected ? aTeamName : bTeamName;
+
+const story = `=== 게임 결과 ===\n\n` +
+`${aTeamName} 바이러스: ${aVirusType}\n${bTeamName} 대응 전략: ${bDefense}\n\n` +
+`${bTeamName} 바이러스: ${bVirusType}\n${aTeamName} 대응 전략: ${aDefense}\n\n` +
+`예상 감염자 수:\n- ${aTeamName}: ${aInfected}명\n- ${bTeamName}: ${bInfected}명\n\n` +
+`🏆 최종 승리: ${winner}\n\n` +
+`--- 스토리 ---\n` +
+`도심은 긴장감으로 가득 찼다. ${aMembers}의 ${aTeamName}와 ${bMembers}의 ${bTeamName}는 서로의 바이러스를 퍼뜨리고 막으며 숨막히는 전략 싸움을 벌였다.\n` +
+`${aTeamName}의 바이러스가 도심 곳곳에 퍼졌고, ${bTeamName}의 대응 전략이 효과를 발휘하며 감염 확산을 제한했다.\n` +
+`결국 ${winner}가 도시를 지켜낸 승리의 팀으로 기록되었다.`;
+
+document.getElementById('result').innerText = story;
+}
+</script>
+
+</body>
+</html>
